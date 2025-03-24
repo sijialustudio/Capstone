@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TastySync – Results</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #fff6f9;
+    }
+    header {
+      background: #ff4f6d;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .back-btn {
+      background: white;
+      color: #ff4f6d;
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .container {
+      padding: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .card h3 {
+      margin: 0;
+      color: #ff4f6d;
+    }
+    .map {
+      height: 400px;
+      margin-top: 2rem;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>TastySync Deals</h2>
+    <a href="landing.html" class="back-btn">← Back</a>
+  </header>
+
+  <div class="container">
+    <div id="results"></div>
+    <div id="map" class="map"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const apiKey = "ba28b553ecmsh43f8375eadd68d8p1492acjsn7e06356c9a46";
+    const resultsDiv = document.getElementById("results");
+    const NYC_COORDS = [40.730610, -73.935242];
+
+    const map = L.map("map").setView(NYC_COORDS, 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    async function fetchRestaurants() {
+      const url = "https://documenu.p.rapidapi.com/restaurants/search/geo?lat=40.730610&lon=-73.935242&distance=2";
+
+      const options = {
+        method: "GET",
+        headers: {
+          "X-RapidAPI-Key": apiKey,
+          "X-RapidAPI-Host": "documenu.p.rapidapi.com"
+        }
+      };
+
+      try {
+        const res = await fetch(url, options);
+        const data = await res.json();
+        const restaurants = data.data.slice(0, 5); // Show first 5 for now
+
+        restaurants.forEach(r => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `<h3>${r.restaurant_name}</h3>
+            <p>${r.address.formatted}</p>
+            <p>${r.cuisines.join(", ")}</p>`;
+          resultsDiv.appendChild(card);
+
+          if (r.geo && r.geo.lat && r.geo.lon) {
+            L.marker([r.geo.lat, r.geo.lon])
+              .addTo(map)
+              .bindPopup(`<b>${r.restaurant_name}</b><br>${r.address.formatted}`);
+          }
+        });
+      } catch (error) {
+        resultsDiv.innerHTML = "<p>Failed to load restaurants 😢</p>";
+        console.error(error);
+      }
+    }
+
+    fetchRestaurants();
+  </script>
+</body>
+</html>
