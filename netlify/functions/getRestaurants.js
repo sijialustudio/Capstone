@@ -1,4 +1,4 @@
-// Secure Netlify Function calling Google + Documenu APIs
+its the one you gave me: // Secure Netlify Function calling Google + Documenu APIs
 // netlify/functions/getRestaurants.js
 
 import fetch from 'node-fetch';
