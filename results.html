@@ -1,1 +1,104 @@
 <!-- Real results page with live map & scoring will go here -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TastySync Results</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-sA+e2GprO7AAcPJdQ5T6b6E+0yuxkGZm5x+Z1ZC/tS0="
+    crossorigin=""
+  />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #fff4f4;
+    }
+    header {
+      background-color: #f85c70;
+      color: white;
+      padding: 20px;
+      font-size: 1.6rem;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+    #results {
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    }
+    .name {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .meta {
+      font-size: 0.95rem;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <header>TastySync Deals</header>
+  <div id="results">Loading results... ⏳</div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script>
+    async function loadResults() {
+      const res = await fetch('/.netlify/functions/getRestaurants');
+      const data = await res.json();
+
+      const resultDiv = document.getElementById('results');
+      if (!data || !Array.isArray(data)) {
+        resultDiv.innerHTML = 'No results found.';
+        return;
+      }
+
+      resultDiv.innerHTML = '';
+
+      const map = L.map('map').setView([40.73, -73.93], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      data.forEach((r) => {
+        const iconUrl =
+          r.category.toLowerCase().includes('pizza')
+            ? 'https://cdn-icons-png.flaticon.com/512/3132/3132693.png'
+            : r.category.toLowerCase().includes('happy')
+            ? 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png'
+            : r.category.toLowerCase().includes('lunch')
+            ? 'https://cdn-icons-png.flaticon.com/512/1046/1046843.png'
+            : 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png';
+
+        const icon = L.icon({ iconUrl, iconSize: [32, 32] });
+
+        L.marker([r.lat, r.lon], { icon }).addTo(map)
+          .bindPopup(`<b>${r.name}</b><br/>Score: ${r.score}`);
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="name">${r.name}</div>
+          <div class="meta">⭐ ${r.rating} (${r.reviewCount} reviews) | $${r.price} avg | ${r.category}</div>
+          <div class="meta">Score: ${r.score}</div>
+        `;
+        resultDiv.appendChild(card);
+      });
+    }
+
+    loadResults();
+  </script>
+</body>
+</html>
