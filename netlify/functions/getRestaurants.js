@@ -6,7 +6,7 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 export async function handler(event) {
   try {
-    const lat = 40.730610;
+    const lat = 40.73061;
     const lon = -73.935242;
     const documenuURL = `https://documenu.p.rapidapi.com/restaurants/search/geo?lat=${lat}&lon=${lon}&distance=2`;
 
@@ -68,7 +68,10 @@ export async function handler(event) {
         const rating = details?.result?.rating || 0;
         const reviewCount = details?.result?.user_ratings_total || 0;
         const priceAvg = r?.menus?.[0]?.menu_sections?.[0]?.menu_items?.[0]?.price || 10;
-        const score = (rating * 0.4) + (Math.log10(reviewCount + 1) * 0.2) + ((50 - priceAvg) / 50 * 0.3);
+        const score =
+          (rating * 0.4) +
+          (Math.log10(reviewCount + 1) * 0.2) +
+          ((50 - priceAvg) / 50 * 0.3);
 
         return {
           name: r.restaurant_name,
@@ -99,3 +102,4 @@ export async function handler(event) {
     };
   }
 }
+
